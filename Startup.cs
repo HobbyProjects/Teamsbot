@@ -12,6 +12,11 @@ using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 using Microsoft.Bot.Schema;
 using System.Collections.Generic;
+using Microsoft.Bot.Connector.Authentication;
+using Microsoft.Bot.Builder.BotFramework;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.BotBuilderSamples.RootBot.Dialogs;
+using Microsoft.BotBuilderSamples.RootBot;
 
 namespace Microsoft.BotBuilderSamples
 {
@@ -29,14 +34,29 @@ namespace Microsoft.BotBuilderSamples
         {
             services.AddControllers().AddNewtonsoftJson();
 
+            // Configure credentials
+            services.AddSingleton<ICredentialProvider, ConfigurationCredentialProvider>();
+
             // Create the Bot Framework Adapter with error handling enabled.
             services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
+
+            // Note: some classes use the base BotAdapter so we add an extra registration that pulls the same instance.
+            services.AddSingleton<BotAdapter>(sp => sp.GetService<BotFrameworkHttpAdapter>());
 
             // Create a global hashset for our ConversationReferences
             services.AddSingleton<ConcurrentDictionary<string, ConversationReference>>();
 
             // Create a list for adaptive cards
             services.AddSingleton<List<Activity>>();
+
+            // Register the storage we'll be using for User and Conversation state. (Memory is great for testing purposes.)
+            services.AddSingleton<IStorage, MemoryStorage>();
+
+            // Register Conversation state (used by the Dialog system itself).
+            services.AddSingleton<ConversationState>();
+            services.AddSingleton<UserState>();
+
+            services.AddSingleton<Dialog, MainDialog>();
 
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
             services.AddTransient<IBot, TeamsConversationBot>();
@@ -58,8 +78,6 @@ namespace Microsoft.BotBuilderSamples
                 {
                     endpoints.MapControllers();
                 });
-
-            // app.UseHttpsRedirection();
         }
     }
 }
