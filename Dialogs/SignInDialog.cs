@@ -7,11 +7,11 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 
-namespace Microsoft.BotBuilderSamples.RootBot.Dialogs
+namespace TeamsConversationBot.Dialogs
 {
     public class SignInDialog : ComponentDialog
     {
-        string _connectionName;
+        private readonly string _connectionName;
 
         public SignInDialog(IConfiguration configuration)
             : base(nameof(SignInDialog))
@@ -29,7 +29,7 @@ namespace Microsoft.BotBuilderSamples.RootBot.Dialogs
 
         private async Task<DialogTurnResult> SignInStepAsync(WaterfallStepContext context, CancellationToken cancellationToken)
         {
-            return await context.BeginDialogAsync(nameof(OAuthPrompt), null, cancellationToken);
+            return await context.BeginDialogAsync(nameof(OAuthPrompt), null, cancellationToken); 
         }
 
         private async Task<DialogTurnResult> DisplayTokenAsync(WaterfallStepContext context, CancellationToken cancellationToken)

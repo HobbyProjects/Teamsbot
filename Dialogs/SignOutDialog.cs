@@ -7,7 +7,7 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Extensions.Configuration;
 
-namespace Microsoft.BotBuilderSamples.RootBot.Dialogs
+namespace TeamsConversationBot.Dialogs
 {
     public class SignOutDialog : ComponentDialog
     {

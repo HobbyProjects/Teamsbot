@@ -9,7 +9,7 @@ using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.BotBuilderSamples.RootBot.Dialogs
+namespace TeamsConversationBot.Dialogs
 {
     public class MainDialog : ComponentDialog
     {
@@ -43,11 +43,6 @@ namespace Microsoft.BotBuilderSamples.RootBot.Dialogs
                 else if (text == "token" || text == "get token" || text == "gettoken")
                 {
                     return await innerDc.BeginDialogAsync(nameof(DisplayTokenDialog), null, cancellationToken);
-                }
-                else
-                {
-                    var skillResult = await innerDc.BeginDialogAsync(nameof(SkillDialog), new BeginSkillDialogOptions() { Activity = innerDc.Context.Activity }, cancellationToken);
-                    return skillResult;
                 }
             }
 

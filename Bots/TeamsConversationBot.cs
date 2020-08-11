@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Teams;
@@ -14,6 +13,7 @@ using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using TeamsConversationBot.Dialogs;
 
 namespace Microsoft.BotBuilderSamples.Bots
 {
@@ -25,6 +25,7 @@ namespace Microsoft.BotBuilderSamples.Bots
         private readonly ConversationState _conversationState;
         private readonly UserState _userState;
         private readonly Dialog _dialog;
+        private readonly CreateTeamsMeetingDialog _createTeamsMeetingDialog;
 
         // Dependency injected dictionary for storing ConversationReference objects used in NotifyController to proactively message users
         private readonly ConcurrentDictionary<string, ConversationReference> _conversationReferences;
@@ -36,7 +37,8 @@ namespace Microsoft.BotBuilderSamples.Bots
             List<Activity> adaptiveCardActivities,
             ConversationState conversationState,
             UserState userState,
-            Dialog dialog)
+            Dialog dialog,
+            CreateTeamsMeetingDialog createTeamsMeetingDialog)
         {
             _appId = config["MicrosoftAppId"];
             _appPassword = config["MicrosoftAppPassword"];
@@ -45,6 +47,7 @@ namespace Microsoft.BotBuilderSamples.Bots
             _dialog = dialog;
             _userState = userState;
             _conversationState = conversationState;
+            _createTeamsMeetingDialog = createTeamsMeetingDialog;
         }
 
         public override async Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
@@ -53,12 +56,18 @@ namespace Microsoft.BotBuilderSamples.Bots
 
             await _conversationState.SaveChangesAsync(turnContext, false, cancellationToken);
             await _userState.SaveChangesAsync(turnContext, false, cancellationToken);
-        }
 
+        }
         private void AddConversationReference(Activity activity)
         {
             var conversationReference = activity.GetConversationReference();
             _conversationReferences.AddOrUpdate(conversationReference.User.Id, conversationReference, (key, newValue) => conversationReference);
+        }
+
+        protected override async Task OnTeamsSigninVerifyStateAsync(ITurnContext<IInvokeActivity> turnContext, CancellationToken cancellationToken)
+        {
+            // The OAuth Prompt needs to see the Invoke Activity in order to complete the login process.
+            await _dialog.RunAsync(turnContext, _conversationState.CreateProperty<DialogState>(nameof(DialogState)), cancellationToken);
         }
 
         protected override async Task OnTokenResponseEventAsync(ITurnContext<IEventActivity> turnContext, CancellationToken cancellationToken)
@@ -85,6 +94,11 @@ namespace Microsoft.BotBuilderSamples.Bots
             {
                 await AppointmentRequested(turnContext, cancellationToken, json.ToString());
                 return;
+            }
+
+            if(turnContext.Activity.Text.Contains("meeting"))
+            {
+                await _createTeamsMeetingDialog.RunAsync(turnContext, _conversationState.CreateProperty<DialogState>(nameof(DialogState)), cancellationToken);
             }
 
             await _conversationState.LoadAsync(turnContext, true, cancellationToken);

@@ -7,7 +7,6 @@ using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.BotBuilderSamples.Bots;
 using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 using Microsoft.Bot.Schema;
@@ -15,8 +14,7 @@ using System.Collections.Generic;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Builder.BotFramework;
 using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.BotBuilderSamples.RootBot.Dialogs;
-using Microsoft.BotBuilderSamples.RootBot;
+using TeamsConversationBot.Dialogs;
 
 namespace Microsoft.BotBuilderSamples
 {
@@ -57,9 +55,10 @@ namespace Microsoft.BotBuilderSamples
             services.AddSingleton<UserState>();
 
             services.AddSingleton<Dialog, MainDialog>();
+            services.AddSingleton<CreateTeamsMeetingDialog>();
 
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
-            services.AddTransient<IBot, TeamsConversationBot>();
+            services.AddTransient<IBot, Bots.TeamsConversationBot>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
